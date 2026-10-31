@@ -17,3 +17,8 @@ rustc-ice-*.txt
 # Cargo mutants mutation testing data
 **/mutants.out*/
 
+
+
+# Added by cargo
+
+/target
