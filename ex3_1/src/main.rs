@@ -5,13 +5,14 @@ pub struct Order {
 }
 
 impl Order {
-    pub fn is_available(self: Self) -> bool {
+    pub fn is_available(&self) -> bool {
         self.quantity != 0
     }
 }
 
 fn main() {
     let o = Order{price: 1, quantity: 1};
+    println!("{}", o.is_available());
     println!("{}", o.is_available());
 }
 
