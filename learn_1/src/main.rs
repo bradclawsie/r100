@@ -15,7 +15,7 @@ impl Inventory {
 
     // `contains` returns true if `item` is in `self.items`.
     pub fn contains(&self, item: &str) -> bool {
-        self.items.contains(&String::from(item))
+        self.items.iter().any(|x| x == item)
     }
 
     // `remove` removes `item` from `self.items` if present.
@@ -41,8 +41,7 @@ mod tests {
     #[test]
     fn test_new() {
         let inventory = Inventory::new();
-        let _ = inventory.items;
-        assert_eq!(true, true);
+        assert_eq!(inventory.items.len(), 0 as usize);
     }
 
     #[test]
