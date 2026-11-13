@@ -12,6 +12,9 @@ impl<T> History<T> {
     }
 
     pub fn push(&mut self, value: T) {
+        if self.capacity == 0 {
+            return;
+        }
         if self.entries.len() == self.capacity {
             self.entries.remove(0);
         }
@@ -63,6 +66,11 @@ mod tests {
         history.push(33);
         assert_eq!(history.entries.len(), 2);
         assert_eq!(history.entries.as_slice(), &[22, 33]);
+
+        let mut history0 = History::<u32>::new(0);
+        history0.push(11);
+        assert_eq!(history0.entries.len(), 0);
+        assert!(history0.pop().is_none());
     }
 
     #[test]
