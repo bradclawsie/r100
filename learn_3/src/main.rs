@@ -31,26 +31,38 @@ impl Bank {
     }
 
     pub fn transfer(&mut self, from: u32, to: u32, amount: i64) -> bool {
-        if from == to || amount < 1 || self.get(to).is_none() {
+        if from == to {
             return false;
         }
-        let from_account = match self.get_mut(from) {
+        if amount < 1 {
+            return false;
+        }
+        
+        let from_read = match self.get(from) {
             Some(account) => account,
             _ => return false,
         };
-        if from_account.balance < amount {
+        if from_read.balance - amount < 0 {
             return false;
         }
-        from_account.balance -= amount;        
-        let to_account = match self.get_mut(to) {
+
+        let to_read = match self.get(to) {
             Some(account) => account,
             _ => return false,
         };
-        if let Some(new_balance) = to_account.balance.checked_add(amount) {
-            to_account.balance += amount;
-            return true
+        if to_read.balance.checked_add(amount).is_none() {
+            return false;
         }
-        false
+
+        let Some(from_write) = self.get_mut(from) else {
+            return false;
+        };
+        from_write.balance -= amount; 
+        let Some(to_write) = self.get_mut(to) else {
+            return false;
+        };
+        to_write.balance += amount;
+        true
     }
 }
 
@@ -147,7 +159,7 @@ mod tests {
 
         let maxed_id: u32 = 3;
         bank.add(Account{
-            id:to_id,
+            id:maxed_id,
             balance:i64::MAX,
         });
 
