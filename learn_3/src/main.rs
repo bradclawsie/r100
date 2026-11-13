@@ -31,7 +31,7 @@ impl Bank {
     }
 
     pub fn transfer(&mut self, from: u32, to: u32, amount: i64) -> bool {
-        if from == to || amount < 0 || self.get(to).is_none() {
+        if from == to || amount < 1 || self.get(to).is_none() {
             return false;
         }
         let from_account = match self.get_mut(from) {
@@ -46,8 +46,11 @@ impl Bank {
             Some(account) => account,
             _ => return false,
         };
-        to_account.balance += amount;
-        true
+        if let Some(new_balance) = to_account.balance.checked_add(amount) {
+            to_account.balance += amount;
+            return true
+        }
+        false
     }
 }
 
@@ -124,8 +127,8 @@ mod tests {
         assert!(bank.get(from_id).is_some_and(|a| a.balance == 0));
         assert!(bank.get(to_id).is_some_and(|a| a.balance == 2));
 
-        // zero transfers are allowed!
-        assert_eq!(bank.transfer(from_id,to_id,0), true);
+        // zero transfers not allowed
+        assert_eq!(bank.transfer(from_id,to_id,0), false);
 
         // negative transfers not allowed
         assert_eq!(bank.transfer(from_id,to_id,-1), false);
@@ -134,13 +137,23 @@ mod tests {
         assert_eq!(bank.transfer(from_id,to_id,1), false);
 
         // account numbers the same
-        assert_eq!(bank.transfer(from_id,from_id,0), false);
+        assert_eq!(bank.transfer(from_id,from_id,1), false);
 
         // from account not found
-        assert_eq!(bank.transfer(99,to_id,0), false);
+        assert_eq!(bank.transfer(99,to_id,1), false);
 
         // to account not found
-        assert_eq!(bank.transfer(from_id, 99, 0), false);
+        assert_eq!(bank.transfer(from_id, 99, 1), false);
+
+        let maxed_id: u32 = 3;
+        bank.add(Account{
+            id:to_id,
+            balance:i64::MAX,
+        });
+
+        // do not let accounts overflow
+        assert_eq!(bank.transfer(to_id, maxed_id, 1), false);
+
     }
     
 }
