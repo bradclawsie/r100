@@ -46,75 +46,80 @@ fn main() {
 mod tests {
     use crate::*;
 
+    #[derive (Debug, PartialEq)]
+    struct Record {
+        id: u32,
+    }
+    
     #[test]
     fn test_new() {
-        let history = History::<u32>::new(4);
+        let history = History::<Record>::new(4);
         assert_eq!(history.entries.len(), 0);
         assert_eq!(history.entries.capacity(), 4);
     }
 
     #[test]
     fn test_push() {
-        let mut history = History::<u32>::new(2);
+        let mut history = History::<Record>::new(2);
         assert_eq!(history.entries.len(), 0);
-        history.push(11);
+        history.push(Record{id: 11});
         assert_eq!(history.entries.len(), 1);
-        assert_eq!(history.entries.as_slice(), &[11]);
-        history.push(22);
+        assert_eq!(history.entries.as_slice(), &[Record{id: 11}]);
+        history.push(Record{id: 22});
         assert_eq!(history.entries.len(), 2);
-        assert_eq!(history.entries.as_slice(), &[11, 22]);
-        history.push(33);
+        assert_eq!(history.entries.as_slice(), &[Record{id: 11}, Record{id:22}]);
+        history.push(Record{id: 33});
         assert_eq!(history.entries.len(), 2);
-        assert_eq!(history.entries.as_slice(), &[22, 33]);
+        assert_eq!(history.entries.as_slice(), &[Record{id:22}, Record{id: 33}]);
 
-        let mut history0 = History::<u32>::new(0);
-        history0.push(11);
+        let mut history0 = History::<Record>::new(0);
+        history0.push(Record{id: 11});
         assert_eq!(history0.entries.len(), 0);
         assert!(history0.pop().is_none());
     }
 
     #[test]
     fn test_latest() {
-        let mut history = History::<u32>::new(2);
+        let mut history = History::<Record>::new(2);
         assert_eq!(history.entries.len(), 0);
-        history.push(11);
+        history.push(Record { id: 11 });
         assert_eq!(history.entries.len(), 1);
-        assert!(history.latest().is_some_and(|x| *x == 11));
-        history.push(22);
+        assert!(history.latest().is_some_and(|x| *x == Record { id: 11 }));
+        history.push(Record { id: 22 });
         assert_eq!(history.entries.len(), 2);
-        assert!(history.latest().is_some_and(|x| *x == 22));
-        history.push(33);
+        assert!(history.latest().is_some_and(|x| *x == Record { id: 22 }));
+        history.push(Record { id: 33 });
         assert_eq!(history.entries.len(), 2);
-        assert!(history.latest().is_some_and(|x| *x == 33));
+        assert!(history.latest().is_some_and(|x| *x == Record { id: 33 }));
     }
 
     #[test]
     fn test_pop() {
-        let mut history = History::<u32>::new(2);
+        let mut history = History::<Record>::new(2);
         assert_eq!(history.entries.len(), 0);
-        history.push(11);
-        history.push(22);
-        assert!(history.pop().is_some_and(|x| x == 22));
-        assert!(history.pop().is_some_and(|x| x == 11));
+        history.push(Record { id: 11 });
+        history.push(Record { id: 22 });
+        assert!(history.pop().is_some_and(|x| x == Record { id: 22 }));
+        assert!(history.pop().is_some_and(|x| x == Record { id: 11 }));
         assert!(history.pop().is_none());
     }
 
     #[test]
     fn test_len() {
-        let mut history = History::<u32>::new(2);
+        let mut history = History::<Record>::new(2);
         assert_eq!(history.len(), 0);
-        history.push(11);
+        history.push(Record { id: 11 });
         assert_eq!(history.len(), 1);
-        history.push(22);
+        history.push(Record { id: 22 });
         assert_eq!(history.len(), 2);
     }
     
     #[test]
     fn test_clear() {
-        let mut history = History::<u32>::new(2);
+        let mut history = History::<Record>::new(2);
         assert_eq!(history.entries.len(), 0);
-        history.push(11);
-        history.push(22);
+        history.push(Record { id: 11 });
+        history.push(Record { id: 22 });
         history.clear();
         assert_eq!(history.len(), 0);
     }
