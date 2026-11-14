@@ -19,6 +19,10 @@ impl<T> Slot<T> {
         self.value.as_ref()
     }
 
+    pub fn get_mut(&mut self) -> Option<&mut T> {
+        self.value.as_mut()
+    }
+    
     pub fn take(&mut self) -> Option<T> {
         self.value.take()
     }
@@ -51,7 +55,7 @@ mod tests {
         let prev0 = slot.insert(Record{id:1});
         assert!(prev0.is_none());
         let prev1 = slot.insert(Record{id:2});
-        assert!(prev1.is_some_and(|x| x.id == 1))
+        assert!(prev1.is_some_and(|x| x.id == 1));
     }
 
     #[test]
@@ -59,9 +63,24 @@ mod tests {
         let mut slot = Slot::<Record>::new();
         assert!(slot.get().is_none());
         let prev0 = slot.insert(Record{id:1});
-        assert!(slot.get().is_some_and(|x| x.id == 1))
+        assert!(slot.get().is_some_and(|x| x.id == 1));
     }
 
+    #[test]
+    fn test_get_mut() {
+        let mut slot = Slot::<Record>::new();
+        assert!(slot.get_mut().is_none());
+        let prev0 = slot.insert(Record{id:1});
+        let mut v = slot.get_mut();
+        if let Some(x) = v {
+            assert_eq!(x.id, 1);
+            *x = Record{id:2};
+            assert_eq!(x.id, 2);
+        } else {
+            panic!("not Some");
+        }
+    }
+    
     #[test]
     fn test_take() {
         let mut slot = Slot::<Record>::new();
