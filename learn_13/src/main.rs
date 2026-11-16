@@ -108,6 +108,14 @@ mod tests {
             )),
         );
         assert_eq!(expr.depth(), 3);
+
+        let expr2 = Expr::Negate(Box::new(
+            Expr::Add(
+                Box::new(Expr::Number(1)),
+                Box::new(Expr::Number(2)),
+            ),
+        ));
+        assert_eq!(expr2.depth(), 3);
     }
 
     #[test]
@@ -135,5 +143,13 @@ mod tests {
             )),
         );
         assert_eq!(expr.node_count(), 6);
+
+        let expr2 = Expr::Negate(Box::new(
+            Expr::Add(
+                Box::new(Expr::Number(1)),
+                Box::new(Expr::Number(2)),
+            ),
+        ));
+        assert_eq!(expr2.node_count(), 4);
     }
 }
