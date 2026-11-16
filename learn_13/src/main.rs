@@ -41,7 +41,7 @@ impl Expr {
                 return 1 + lhs.node_count() + rhs.node_count();
             },
             Expr::Negate(i) => {
-                return 1 + i.depth();
+                return 1 + i.node_count();
             },
         }
     }
@@ -55,6 +55,7 @@ fn main() {
 mod tests {
     use crate::*;
 
+    #[test]
     fn test_evaluate() {
         assert_eq!(Expr::Number(1).evaluate(), 1);
         assert_eq!(Expr::Add(
@@ -82,6 +83,7 @@ mod tests {
         assert_eq!(expr.evaluate(), -20);
     }
 
+    #[test]
     fn test_depth() {
         assert_eq!(Expr::Number(1).depth(), 1);
         assert_eq!(Expr::Add(
@@ -108,6 +110,7 @@ mod tests {
         assert_eq!(expr.depth(), 3);
     }
 
+    #[test]
     fn test_node_count() {
         assert_eq!(Expr::Number(1).node_count(), 1);
         assert_eq!(Expr::Add(
@@ -120,7 +123,7 @@ mod tests {
             Box::new(Expr::Number(2))).node_count(),
             3);
         assert_eq!(Expr::Negate(
-            Box::new(Expr::Number(1))).depth(),
+            Box::new(Expr::Number(1))).node_count(),
             2);
         let expr = Expr::Multiply(
             Box::new(Expr::Add(
