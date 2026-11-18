@@ -52,7 +52,7 @@ impl RequestBuilder {
     fn build(self) -> Result<Request, BuildError> {
         // path must start with "/" and be non-empty
         if !(self.request.path.starts_with("/") &&
-            self.request.path.len() > 1) {
+            self.request.path.len() >= 1) {
                 return Err(BuildError::MalformedPath);
             }
 
@@ -118,8 +118,8 @@ mod tests {
         let builder0 = RequestBuilder::new(Method::Get, ".".to_string());
         assert_eq!(builder0.build(), Err(BuildError::MalformedPath));
 
-        // path cannot be empty following /
-        let builder1 = RequestBuilder::new(Method::Get, "/".to_string());
+        // path length must be greater than 1
+        let builder1 = RequestBuilder::new(Method::Get, "".to_string());
         assert_eq!(builder1.build(), Err(BuildError::MalformedPath));
     }
 
@@ -153,6 +153,26 @@ mod tests {
     }
 
     #[test]
+    fn test_precedence() {
+        // malformed path takes precedence over malformed header name
+        let builder0 = RequestBuilder::new(Method::Get, "abc".to_string());
+        let builder1 = builder0.header(" ".to_string(), "y".to_string());
+        assert_eq!(builder1.build(), Err(BuildError::MalformedPath));
+
+        // bad header name takes precedence over invalid body
+        let builder2 = RequestBuilder::new(Method::Get, "/abc".to_string());
+        let builder3 = builder2.header(" ".to_string(), "y".to_string());
+        let builder4 = builder3.body(vec![0 as u8]);
+        assert_eq!(builder4.build(), Err(BuildError::MalformedHeaderName(" ".to_string())));
+
+        // finally, invalid body
+        let builder5 = RequestBuilder::new(Method::Get, "/abc".to_string());
+        let builder6 = builder5.header("x".to_string(), "y".to_string());
+        let builder7 = builder6.body(vec![0 as u8]);
+        assert_eq!(builder7.build(), Err(BuildError::InvalidBody));
+    }
+    
+    #[test]
     fn test_build() {
         let builder0 = RequestBuilder::new(Method::Get, "/abc".to_string());
         assert!(builder0.build().is_ok());
@@ -178,5 +198,8 @@ mod tests {
         let builder8 = RequestBuilder::new(Method::Post, "/abc".to_string());
         let builder9 = builder8.body(vec![0 as u8, 1 as u8]);
         assert!(builder9.build().is_ok());
+
+        let builder10 = RequestBuilder::new(Method::Delete, "/abc".to_string());
+        assert!(builder10.build().is_ok());
     }
 }
