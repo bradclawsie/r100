@@ -201,5 +201,14 @@ mod tests {
 
         let builder10 = RequestBuilder::new(Method::Delete, "/abc".to_string());
         assert!(builder10.build().is_ok());
+
+        let builder11 = RequestBuilder::new(Method::Post, "/abc".to_string());
+        let builder12 = builder11.header("a".to_string(), "b".to_string());
+        let builder13 = builder12.body(vec![0 as u8]);
+        let req13 = builder13.build().unwrap();
+        assert_eq!(req13.method, Method::Post);
+        assert_eq!(req13.headers, vec![("a".to_string(), "b".to_string())]);
+        assert_eq!(req13.body, Some(vec![0 as u8]));
+        
     }
 }
