@@ -12,8 +12,7 @@ struct LogBuffer {
 impl LogBuffer {
     fn new(capacity: usize) -> Self {
         Self {
-            // panics if capacity > isize::MAX
-            entries: Vec::with_capacity(capacity),
+            entries: Vec::new(),
             capacity,
         }
     }
@@ -32,13 +31,11 @@ impl LogBuffer {
 
     fn drain(&mut self) -> Vec<LogEntry> {
         let entries = std::mem::take(&mut self.entries);
-        self.entries.reserve_exact(self.capacity);
         entries
     }
 
     fn reset(&mut self) {
-        let _ = self.drain();
-        return
+        std::mem::take(self);
     }
 }
 
@@ -46,7 +43,7 @@ impl Default for LogBuffer {
     fn default() -> Self {
         const CAPACITY: usize = 100;
         Self {
-            entries: Vec::with_capacity(CAPACITY),
+            entries: Vec::new(),
             capacity: CAPACITY,
         }
     }
@@ -66,7 +63,6 @@ mod tests {
         let lb: LogBuffer = LogBuffer::new(CAPACITY);
         assert_eq!(lb.capacity, CAPACITY);
         assert!(lb.entries.is_empty());
-        assert_eq!(lb.entries.capacity(), lb.capacity);
     }
 
     #[test]
@@ -74,7 +70,8 @@ mod tests {
         const CAPACITY: usize = 100;
         let lb: LogBuffer = Default::default();
         assert_eq!(lb.capacity, CAPACITY);
-        assert_eq!(lb.entries.capacity(), CAPACITY);
+        let lb0: LogBuffer = LogBuffer::default();
+        assert_eq!(lb0.capacity, CAPACITY);
     }
 
     #[test]
@@ -112,7 +109,6 @@ mod tests {
             LogEntry{timestamp:1, message: "b".to_string()}
         ]);
         assert!(lb.entries.is_empty());
-        assert_eq!(lb.entries.capacity(), lb.capacity);
     }
 
     #[test]
@@ -127,7 +123,6 @@ mod tests {
             LogEntry{timestamp:1, message: "b".to_string()}
         ]);
         lb.reset();
-        assert_eq!(lb.entries.capacity(), CAPACITY);
         assert_eq!(lb.entries.len(), 0);
         assert_eq!(lb.entries(), []);
     }
