@@ -81,6 +81,10 @@ mod tests {
         assert_eq!(lb.entries.len(), 1);
         assert!(!lb.push(LogEntry{timestamp:0, message:"a".to_string()}));
         assert_eq!(lb.entries.len(), 1);
+
+        let mut lb0 = LogBuffer::new(0);
+        assert!(!lb0.push(LogEntry{timestamp:0, message:"a".to_string()}));
+        assert!(lb0.entries().is_empty());
     }
 
     #[test]
@@ -95,7 +99,7 @@ mod tests {
             LogEntry{timestamp:1, message: "b".to_string()}
         ]);
     }
-
+    
     #[test]
     fn test_drain() {
         const CAPACITY: usize = 2;
@@ -109,6 +113,11 @@ mod tests {
             LogEntry{timestamp:1, message: "b".to_string()}
         ]);
         assert!(lb.entries.is_empty());
+        assert!(lb.push(LogEntry{timestamp:0, message:"a".to_string()}));
+        assert_eq!(lb.entries.len(), 1);
+        assert!(lb.push(LogEntry{timestamp:1, message:"b".to_string()}));
+        assert_eq!(lb.entries.len(), 2);
+        assert!(!lb.push(LogEntry{timestamp:2, message:"c".to_string()}));
     }
 
     #[test]
@@ -125,5 +134,11 @@ mod tests {
         lb.reset();
         assert_eq!(lb.entries.len(), 0);
         assert_eq!(lb.entries(), []);
+        assert_eq!(lb.capacity, 100);
+        for i in 0..100 {
+            assert!(lb.push(LogEntry{timestamp:i, message:"m".to_string()}));
+        }
+        assert_eq!(lb.entries.len(), 100);
+        assert!(!lb.push(LogEntry{timestamp:101, message:"m".to_string()}));
     }
 }
