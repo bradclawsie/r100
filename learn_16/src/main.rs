@@ -52,14 +52,20 @@ impl TryFrom<EndpointText> for Endpoint {
 
         let mut ep: Endpoint = Endpoint::default();
         ep.port = value.port;
-        
+
         for i in 0..4 {
             if address_component[i].is_empty() {
                 return Err(Self::Error::EmptyComponent);
             }
+        }
+
+        for i in 0..4 {
             if !address_component[i].bytes().all(|x| x.is_ascii_digit()) {
                 return Err(Self::Error::InvalidComponent);
             }
+        }
+        
+        for i in 0..4 {
             match address_component[i].parse::<u8>() {
                 Ok(v) => {
                     ep.address[i] = v;
@@ -69,8 +75,15 @@ impl TryFrom<EndpointText> for Endpoint {
                 },
             } 
         }        
+
         Ok(ep)
     }
+}
+
+fn convert<T, U>(value: T) -> U
+where
+    U: From<T> {
+        value.into()
 }
 
 fn main() {
@@ -127,7 +140,22 @@ mod tests {
             );
         assert_eq!(t1, Ok(Endpoint{ address: [1,2,30,4], port:0}));
     }
-    
+
+    #[test]
+    fn test_tryinto() {
+        let ep: Result<Endpoint, ParseEndpointError> = EndpointText {
+            address: "127.0.0.1".to_string(),
+            port: 80,
+        }.try_into();
+        assert_eq!(ep, Ok(Endpoint{address:[127,0,0,1], port:80}));
+
+        let ep_err: Result<Endpoint, ParseEndpointError> = EndpointText {
+            address: "".to_string(),
+            port: 0,
+        }.try_into();
+        assert!(ep_err.is_err());
+    }
+
     #[test]
     fn test_tryfrom_invalid_dotted_quad() {
         for sample in ["", "1.2.3", "1.2.3.4.5"] {
@@ -141,7 +169,7 @@ mod tests {
 
     #[test]
     fn test_tryfrom_empty_component() {
-        for sample in ["0.0.0.", ".0.0.0", "1..xyz.4"] {
+        for sample in ["0.0.0.", ".0.0.0", "1..xyz.4", "999..3.4"] {
             let t =
                 Endpoint::try_from(
                     EndpointText{address:sample.to_string(), port:0},
@@ -153,7 +181,7 @@ mod tests {
     #[test]
     fn test_tryfrom_invalid_component() {
         for sample in ["0.0.0.-1", "x.0.0.0", "0.0.x.0",
-            "1.a.3.4", "1.-2.3.4"] {
+            "1.a.3.4", "1.-2.3.4", "999.abc.3.4"] {
             let t =
                 Endpoint::try_from(
                     EndpointText{address:sample.to_string(), port:0},
@@ -171,5 +199,16 @@ mod tests {
                 );
             assert_eq!(t, Err(ParseEndpointError::OutOfRangeComponent));
         }
+    }
+
+    #[test]
+    fn test_convert() {
+        assert_eq!(convert::<Endpoint, EndpointText>(Endpoint{
+            address: [1,2,3,4],
+            port: 900,
+        }), EndpointText{
+            address: "1.2.3.4".to_string(),
+            port: 900,
+        });
     }
 }
