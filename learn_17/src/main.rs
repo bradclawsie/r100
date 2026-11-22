@@ -78,7 +78,21 @@ mod tests {
         let d0 = Document::new("t".to_string(), "a b c".to_string());
         let d1 = Document::new("t".to_string(), "a".to_string());
         assert!(contains_text(&d0, d1));
-        assert!(!contains_text(&d0, "z".to_string()));
+        assert!(!contains_text(&d0, "z".to_string()));        
+    }
+
+    #[test]
+    fn test_document_reuse() {
+        let doc = Document::new(
+            "Notes".to_string(),
+            "Rust ownership matters".to_string(),
+        );
         
+        assert_eq!(word_count(&doc), 3);
+        assert!(contains_text(&doc, "ownership"));
+        assert!(contains_text(&doc, "Rust"));
+        
+        assert_eq!(doc.title(), "Notes");
+        assert_eq!(doc.body(), "Rust ownership matters");
     }
 }
