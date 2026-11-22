@@ -82,6 +82,8 @@ mod tests {
         assert!(&ur.insert(Username::new("Joe".to_string()),2).is_none());
         assert_eq!(ur.len(), 2 as usize);
         assert!(&ur.get("Joe".to_string().as_str()).is_some_and(|x| x == 2));
+        assert!(&ur.insert(Username::new("joe".to_string()),5).is_none());
+        assert_eq!(ur.len(), 3 as usize);
         
     }
 }
