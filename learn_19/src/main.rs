@@ -74,12 +74,20 @@ mod tests {
         assert_eq!(n3[0], 10);
         assert_eq!(n3.first(), Some(&10));
         assert_eq!(n3.sum(), 60);
+
+        let numbers = Numbers::new(vec![-3, 0, 4, 8]);
+        assert_eq!(count_positive(&numbers), 2);
+        assert_eq!(average(&numbers), Some(2.25));
+        assert_eq!(numbers.len(), 4);
+        assert_eq!(numbers[2], 4);
     }
 
     #[test]
     fn test_average() {
         let numbers = Numbers::new(vec![10, 20, 30]);
         assert_eq!(average(&numbers), Some(20.0));
+        let empty = Numbers::new(vec![]);
+        assert_eq!(average(&empty), None);
     }
 
     #[test]
