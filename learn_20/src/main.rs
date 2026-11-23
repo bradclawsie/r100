@@ -108,7 +108,7 @@ mod tests {
         assert!(Version::from_str("1.2.3").is_ok_and(|x| x == v));
         assert!(Version::from_str("0.0.0").is_ok_and(|x| x == Version::new(0,0,0)));
         assert!(Version::from_str("01.02.03").is_ok_and(|x| x == v));
-        assert!(Version::from_str("4294967295.0.0").is_ok());
+        assert!(Version::from_str("4294967295.0.0").is_ok_and(|x| x.major == u32::MAX));
         assert!(Version::from_str("1.2").is_err_and(|x| x == ParseVersionError::WrongCount));
         assert!(Version::from_str("1.2.3.4").is_err_and(|x| x == ParseVersionError::WrongCount));
         assert!(Version::from_str("1..3").is_err_and(|x| x == ParseVersionError::EmptyComponent));
@@ -129,5 +129,25 @@ mod tests {
 
         let version1 = Version::from_str("2.5.10").unwrap();
         assert_eq!(version1, Version::new(2, 5, 10));
+
+        let original = Version::new(10, 20, 30);
+        
+        let text = original.to_string();
+        let parsed: Version = text.parse().unwrap();
+        
+        assert_eq!(parsed, original);
+    }
+
+    #[test]
+    fn test_precedence() {
+        assert_eq!(
+            "999999999999999..3".parse::<Version>(),
+            Err(ParseVersionError::EmptyComponent)
+        );
+        
+        assert_eq!(
+            "999999999999999.abc.3".parse::<Version>(),
+            Err(ParseVersionError::InvalidComponent)
+        );
     }
 }
