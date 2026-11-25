@@ -11,20 +11,23 @@ fn test_ok() {
     assert!(parse_config(&ok1).is_ok_and(|x| x ==
         Config{host:"myhost-012-".to_string(), port:65535, workers:usize::MAX}));
 
-    let ok2 = "port=1\n# comment\n host=my-host  \n\n  workers=1 \n";
+    let ok2 = "port=1\n# comment\n host=my  host  \n\n  workers=1 \n";
     assert!(parse_config(ok2).is_ok_and(|x| x ==
-        Config{host:"my-host".to_string(), port:1, workers:1}));
+        Config{host:"my  host".to_string(), port:1, workers:1}));
 
     let ok3 = "port=1\n# comment\n host=my=host\n\n  workers=1 \n";
     assert!(parse_config(ok3).is_ok_and(|x| x ==
         Config{host:"my=host".to_string(), port:1, workers:1}));
+
+    let ok4 = "\n# comment\n host=  my-host  \nport=1  \n  workers=1 \n";
+    assert!(parse_config(ok4).is_ok_and(|x| x ==
+        Config{host:"my-host".to_string(), port:1, workers:1}));
 
 }
 
 #[test]
 fn test_invalid_line() {
     let invalid0 = "host=hello\nport\nworkers=1\n";
-    dbg!(parse_config(invalid0));
     assert!(matches!(
         parse_config(invalid0),
         Err(ConfigError::InvalidLine(2))
@@ -69,10 +72,10 @@ fn test_duplicate_field() {
 
 #[test]
 fn test_invalid_value() {
-    let invalid0 = "host=hello...&&&\nport=1\nworkers=1\n";
+    let invalid0 = "host=  \nport=1\nworkers=1\n";
     assert!(matches!(
         parse_config(invalid0),
-	Err(ConfigError::InvalidValue(s)) if s == "hello...&&&"
+	Err(ConfigError::InvalidValue(s)) if s == ""
     ));
 
     let invalid1 = "host=hello\nport=0\nworkers=1\n";
@@ -109,6 +112,18 @@ fn test_invalid_value() {
     assert!(matches!(
         parse_config(invalid6),
 	Err(ConfigError::InvalidValue(s)) if s == "def"
+    ));
+
+    let invalid7 = "host=hello\nport=+1\nworkers=1\n";
+    assert!(matches!(
+        parse_config(invalid7),
+	Err(ConfigError::InvalidValue(s)) if s == "+1"
+    ));
+
+    let invalid8 = "host=hello\nport=1\nworkers=+1\n";
+    assert!(matches!(
+        parse_config(invalid8),
+	Err(ConfigError::InvalidValue(s)) if s == "+1"
     ));
 }
 

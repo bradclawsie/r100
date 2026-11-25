@@ -26,11 +26,16 @@ pub fn parse_config(input: &str) -> Result<Config, ConfigError> {
             continue;            
         }
         
-        let (key, val) = trimmed.split_once('=').ok_or_else(|| ConfigError::InvalidLine(i))?;
+        let (k, v) = trimmed.split_once('=').ok_or_else(|| ConfigError::InvalidLine(i))?;
+        let key = k.trim();
+        let val = v.trim();
 
         // one of the components is empty
-        if key.is_empty() || val.is_empty() {
+        if key.is_empty() {
             return Err(ConfigError::InvalidLine(i)); 
+        }
+        if val.is_empty() {
+            return Err(ConfigError::InvalidValue("".to_string()))
         }
         
         // bad key
@@ -44,12 +49,6 @@ pub fn parse_config(input: &str) -> Result<Config, ConfigError> {
                 return Err(ConfigError::DuplicateField("host".to_string()));
             }
             
-            // hostnames can be nonempty a-zA-Z0-9 and hyphen
-            if val.is_empty() ||
-                !val.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '=') {
-                return Err(ConfigError::InvalidValue(val.to_string()));
-            }
-
             host = Some(val.to_string());
         }
 
@@ -57,6 +56,10 @@ pub fn parse_config(input: &str) -> Result<Config, ConfigError> {
             // arlready set
             if port.is_some() {
                 return Err(ConfigError::DuplicateField("port".to_string()));
+            }
+
+            if !val.chars().all(|c| c.is_ascii_digit()) {
+                return Err(ConfigError::InvalidValue(val.to_string()));
             }
             
             port = Some(val.parse().
@@ -68,7 +71,11 @@ pub fn parse_config(input: &str) -> Result<Config, ConfigError> {
             if workers.is_some() {
                 return Err(ConfigError::DuplicateField("workers".to_string()));
             }
-            
+
+            if !val.chars().all(|c| c.is_ascii_digit()) {
+                return Err(ConfigError::InvalidValue(val.to_string()));
+            }
+
             workers = Some(val.parse().
                 map_err(|_| ConfigError::InvalidValue(val.to_string()))?);
         }

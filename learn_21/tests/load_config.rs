@@ -16,8 +16,12 @@ fn test_load_config() -> io::Result<()> {
         file.write_all(b"host=myhost\nport=1\nworkers=1\n")?;
     }
 
-    assert!(load_config(&file_path).is_ok());
-    assert!(load_config(std::path::Path::new("/bad/path")).is_err());
+    assert!(load_config(&file_path).is_ok_and(|x| x ==
+        Config{host:"myhost".to_string(), port:1, workers:1}));
+    assert!(matches!(
+        load_config(std::path::Path::new("/bad/path")),
+        Err(ConfigError::Io(Error)),
+    ));
     
     fs::remove_file(&file_path)?;
     Ok(())
