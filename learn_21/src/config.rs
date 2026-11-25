@@ -92,11 +92,11 @@ pub fn parse_config(input: &str) -> Result<Config, ConfigError> {
     if workers.is_none() {
         return Err(ConfigError::MissingField("workers".to_string()));
     }
-    
-    Ok(Config{
-        host: host.unwrap(),
-        port: port.unwrap().get(),
-        workers: workers.unwrap().get(),
+
+    Ok(Config {
+        host: host.ok_or_else(|| ConfigError::MissingField("host".into()))?,
+        port: port.ok_or_else(|| ConfigError::MissingField("port".into()))?.get(),
+        workers: workers.ok_or_else(|| ConfigError::MissingField("workers".into()))?.get(),
     })
 }
 

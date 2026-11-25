@@ -18,9 +18,11 @@ fn test_load_config() -> io::Result<()> {
 
     assert!(load_config(&file_path).is_ok_and(|x| x ==
         Config{host:"myhost".to_string(), port:1, workers:1}));
+
     assert!(matches!(
         load_config(std::path::Path::new("/bad/path")),
-        Err(ConfigError::Io(Error)),
+        Err(ConfigError::Io(err))
+        if err.kind() == std::io::ErrorKind::NotFound
     ));
     
     fs::remove_file(&file_path)?;
